@@ -36,8 +36,8 @@ app.use(
 );
 
 // ─── Body Parsers ─────────────────────────────────────────────────────────────
-app.use(express.json({ limit: "5mb" }));
-app.use(express.urlencoded({ extended: true, limit: "5mb" }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
 // ─── Global Rate Limiter ──────────────────────────────────────────────────────
