@@ -29,6 +29,14 @@ router.put("/profile", userController.updateProfile);
 router.post("/avatar", userController.uploadAvatar);
 
 /**
+/**
+ * @route  DELETE /api/v1/users/avatar
+ * @desc   Delete user avatar
+ * @access Private
+ */
+router.delete("/avatar", userController.deleteAvatar);
+
+/**
  * @route  POST /api/v1/users/deactivate
  * @desc   Deactivate current user account
  * @access Private
@@ -36,4 +44,3 @@ router.post("/avatar", userController.uploadAvatar);
 router.post("/deactivate", userController.deactivateAccount);
 
 export default router;
-

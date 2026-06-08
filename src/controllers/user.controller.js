@@ -4,7 +4,14 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 // ─── Allowed social link platforms ───────────────────────────────────────────
-const ALLOWED_SOCIAL_KEYS = ["linkedin", "github", "twitter", "instagram", "website", "facebook"];
+const ALLOWED_SOCIAL_KEYS = [
+  "linkedin",
+  "github",
+  "twitter",
+  "instagram",
+  "website",
+  "facebook",
+];
 
 /**
  * @desc   Get the authenticated user's full profile
@@ -27,14 +34,8 @@ export const getProfile = asyncHandler(async (req, res) => {
  * @route  PUT /api/v1/users/profile
  */
 export const updateProfile = asyncHandler(async (req, res) => {
-  const {
-    firstName,
-    lastName,
-    bio,
-    currentWork,
-    workExperience,
-    socialLinks,
-  } = req.body;
+  const { firstName, lastName, bio, currentWork, workExperience, socialLinks } =
+    req.body;
 
   const user = await User.findById(req.user.id || req.user._id);
 
@@ -96,6 +97,27 @@ export const uploadAvatar = asyncHandler(async (req, res) => {
 });
 
 /**
+ * @desc   Delete profile avatar
+ * @route  DELETE /api/v1/users/avatar
+ */
+export const deleteAvatar = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user.id || req.user._id);
+
+  if (!user) {
+    throw ApiError.notFound("User not found");
+  }
+
+  if (!user.avatar) {
+    throw ApiError.badRequest("No avatar to delete");
+  }
+
+  user.avatar = null;
+  await user.save();
+
+  return ApiResponse.success(res, "Avatar deleted successfully", { user });
+});
+
+/**
  * @desc   Deactivate account
  * @route  POST /api/v1/users/deactivate
  */
@@ -112,4 +134,3 @@ export const deactivateAccount = asyncHandler(async (req, res) => {
 
   return ApiResponse.success(res, "Account deactivated successfully");
 });
-
