@@ -8,6 +8,13 @@ const router = Router();
 router.use(authenticate);
 
 /**
+ * @route  GET /api/v1/users/profile
+ * @desc   Get authenticated user's full profile (bio, social links, work exp, etc.)
+ * @access Private
+ */
+router.get("/profile", userController.getProfile);
+
+/**
  * @route  PUT /api/v1/users/profile
  * @desc   Update user profile details
  * @access Private
@@ -29,3 +36,4 @@ router.post("/avatar", userController.uploadAvatar);
 router.post("/deactivate", userController.deactivateAccount);
 
 export default router;
+

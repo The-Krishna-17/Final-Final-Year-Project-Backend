@@ -44,6 +44,76 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+
+    // ─── Extended Profile Fields ─────────────────────────────────────────────
+
+    bio: {
+      type: String,
+      trim: true,
+      maxlength: [500, "Bio must not exceed 500 characters"],
+      default: null,
+    },
+
+    // currentWork — same shape as a workExperience entry; endDate null = still here
+    currentWork: {
+      company: { type: String, trim: true, maxlength: [100, "Company must not exceed 100 characters"], default: null },
+      role:    { type: String, trim: true, maxlength: [100, "Role must not exceed 100 characters"],    default: null },
+      startDate: {
+        year:  { type: Number, min: 1950, default: null },
+        month: { type: Number, min: 1, max: 12, default: null },
+        day:   { type: Number, min: 1, max: 31, default: null },
+      },
+      endDate: {
+        year:  { type: Number, min: 1950, default: null },
+        month: { type: Number, min: 1, max: 12, default: null },
+        day:   { type: Number, min: 1, max: 31, default: null },
+      },
+      description: { type: String, trim: true, maxlength: [500, "Description must not exceed 500 characters"], default: null },
+    },
+
+    workExperience: [
+      {
+        company: {
+          type: String,
+          trim: true,
+          required: true,
+          maxlength: [100, "Company name must not exceed 100 characters"],
+        },
+        role: {
+          type: String,
+          trim: true,
+          required: true,
+          maxlength: [100, "Role must not exceed 100 characters"],
+        },
+        startDate: {
+          year:  { type: Number, required: true, min: [1950, "Start year seems invalid"] },
+          month: { type: Number, required: true, min: 1, max: 12 },
+          day:   { type: Number, default: null, min: 1, max: 31 },
+        },
+        endDate: {
+          // null top-level object = "Present / Ongoing"
+          year:  { type: Number, min: [1950, "End year seems invalid"] },
+          month: { type: Number, min: 1, max: 12 },
+          day:   { type: Number, default: null, min: 1, max: 31 },
+        },
+        description: {
+          type: String,
+          trim: true,
+          maxlength: [500, "Description must not exceed 500 characters"],
+          default: null,
+        },
+      },
+    ],
+
+    socialLinks: {
+      linkedin: { type: String, trim: true, default: null },
+      github: { type: String, trim: true, default: null },
+      twitter: { type: String, trim: true, default: null },
+      instagram: { type: String, trim: true, default: null },
+      website: { type: String, trim: true, default: null },
+      facebook: { type: String, trim: true, default: null },
+    },
+
     isEmailVerified: {
       type: Boolean,
       default: false,
@@ -83,7 +153,7 @@ const userSchema = new mongoose.Schema(
         return ret;
       },
     },
-  }
+  },
 );
 
 // ─── Virtuals ────────────────────────────────────────────────────────────────
