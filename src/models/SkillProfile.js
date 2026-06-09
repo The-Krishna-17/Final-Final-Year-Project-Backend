@@ -2,12 +2,17 @@ import mongoose from "mongoose";
 
 const skillItemSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, trim: true },
-    level: { type: Number, required: true, min: 1, max: 5 }, // 1=Beginner, 5=Expert
-    category: { type: String, required: true, trim: true },
-    normalizedName: { type: String, required: true, index: true },
-    tags: { type: [String], default: [] }, // Auto-generated tags for matching
-    embedding: { type: [Number], default: [] }, // For future AI/ML vector search
+    rawInput: { type: String, default: "", trim: true },
+    domain: { type: String, default: "General" },
+    primarySkill: {
+      name: { type: String, default: "" },
+      category: { type: String, default: "Other" }
+    },
+    topics: { type: [String], default: [] },
+    technologies: { type: [String], default: [] },
+    difficulty: { type: String, enum: ["Beginner", "Intermediate", "Advanced"], default: "Beginner" },
+    tokens: { type: [String], default: [] },
+    processedAt: { type: Date, default: Date.now },
   },
   { _id: true }
 );
@@ -47,9 +52,9 @@ const skillProfileSchema = new mongoose.Schema(
 );
 
 // Indexes for recommendation queries
-skillProfileSchema.index({ "offerSkills.normalizedName": 1 });
-skillProfileSchema.index({ "wantSkills.normalizedName": 1 });
-skillProfileSchema.index({ "offerSkills.tags": 1 });
-skillProfileSchema.index({ "wantSkills.tags": 1 });
+skillProfileSchema.index({ "offerSkills.primarySkill.name": 1 });
+skillProfileSchema.index({ "wantSkills.primarySkill.name": 1 });
+skillProfileSchema.index({ "offerSkills.tokens": 1 });
+skillProfileSchema.index({ "wantSkills.tokens": 1 });
 
 export default mongoose.model("SkillProfile", skillProfileSchema);

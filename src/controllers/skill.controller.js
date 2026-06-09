@@ -2,14 +2,7 @@ import SkillProfile from "../models/SkillProfile.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import {
-  normalizeSkill,
-  resolveAlias,
-  categorizeSkill,
-  generateSkillTags,
-  generateSkillEmbedding,
-  validateSkillInput,
-} from "../utils/skillProcessor.js";
+import { processSkill } from "../utils/skillProcessor.js";
 
 const getUserId = (req) => req.user?.id || req.user?._id;
 
@@ -22,25 +15,6 @@ const getOrCreateProfile = async (userId) => {
   return profile;
 };
 
-// Internal helper to process a skill
-const processSkill = async (name, level) => {
-  validateSkillInput(name, level);
-  const rawNormalized = normalizeSkill(name);
-  const normalizedName = resolveAlias(rawNormalized);
-  const category = await categorizeSkill(normalizedName);
-  const tags = generateSkillTags(normalizedName, category);
-  const embedding = await generateSkillEmbedding(normalizedName);
-  
-  return {
-    name: name.trim(),
-    level,
-    category,
-    normalizedName,
-    tags,
-    embedding,
-  };
-};
-
 /**
  * @desc   Add a skill user can OFFER
  * @route  POST /api/v1/skills/add-offer
@@ -48,18 +22,22 @@ const processSkill = async (name, level) => {
  */
 export const addOfferSkill = asyncHandler(async (req, res) => {
   const userId = getUserId(req);
-  const { name, level } = req.body;
+  const rawInput = req.body.rawInput || req.body.name;
+  
+  if (!rawInput) {
+    throw ApiError.badRequest("rawInput is required");
+  }
 
   const profile = await getOrCreateProfile(userId);
 
-  const processedSkill = await processSkill(name, level || 3); // Default intermediate
+  const processedSkill = await processSkill(rawInput);
 
-  // Prevent duplicate normalized skills
+  // Prevent duplicate primary skills
   const isDuplicate = profile.offerSkills.some(
-    (s) => s.normalizedName === processedSkill.normalizedName
+    (s) => s.primarySkill.name === processedSkill.primarySkill.name
   );
   if (isDuplicate) {
-    throw ApiError.conflict(`You already have ${processedSkill.name} in your offered skills`);
+    throw ApiError.conflict(`You already have ${processedSkill.primarySkill.name} in your offered skills`);
   }
 
   // Max skill limit check
@@ -80,18 +58,22 @@ export const addOfferSkill = asyncHandler(async (req, res) => {
  */
 export const addWantSkill = asyncHandler(async (req, res) => {
   const userId = getUserId(req);
-  const { name, level } = req.body; // level is optional, meaning current level before learning
+  const rawInput = req.body.rawInput || req.body.name;
+
+  if (!rawInput) {
+    throw ApiError.badRequest("rawInput is required");
+  }
 
   const profile = await getOrCreateProfile(userId);
 
-  const processedSkill = await processSkill(name, level || 1); // Default beginner
+  const processedSkill = await processSkill(rawInput);
 
-  // Prevent duplicate normalized skills
+  // Prevent duplicate primary skills
   const isDuplicate = profile.wantSkills.some(
-    (s) => s.normalizedName === processedSkill.normalizedName
+    (s) => s.primarySkill.name === processedSkill.primarySkill.name
   );
   if (isDuplicate) {
-    throw ApiError.conflict(`You already have ${processedSkill.name} in your wanted skills`);
+    throw ApiError.conflict(`You already have ${processedSkill.primarySkill.name} in your wanted skills`);
   }
 
   // Max skill limit check
@@ -106,19 +88,16 @@ export const addWantSkill = asyncHandler(async (req, res) => {
 });
 
 /**
- * @desc   Update a skill (level)
+ * @desc   Update a skill
  * @route  PUT /api/v1/skills/update
  * @access Private
  */
 export const updateSkill = asyncHandler(async (req, res) => {
   const userId = getUserId(req);
-  const { skillId, listType, newLevel } = req.body; // listType: 'offer' | 'want'
+  const { skillId, listType, difficulty } = req.body; // listType: 'offer' | 'want'
 
-  if (!skillId || !listType || !newLevel) {
-    throw ApiError.badRequest("skillId, listType ('offer'/'want'), and newLevel are required");
-  }
-  if (newLevel < 1 || newLevel > 5) {
-    throw ApiError.badRequest("Level must be between 1 and 5");
+  if (!skillId || !listType) {
+    throw ApiError.badRequest("skillId and listType ('offer'/'want') are required");
   }
 
   const profile = await SkillProfile.findOne({ user: userId });
@@ -131,7 +110,10 @@ export const updateSkill = asyncHandler(async (req, res) => {
     throw ApiError.notFound("Skill not found in the specified list");
   }
 
-  skillArray[skillIndex].level = newLevel;
+  if (difficulty) {
+    skillArray[skillIndex].difficulty = difficulty;
+  }
+  
   await profile.save();
 
   return ApiResponse.success(res, "Skill updated successfully", { profile });
