@@ -6,15 +6,19 @@ const skillItemSchema = new mongoose.Schema(
     domain: { type: String, default: "General" },
     primarySkill: {
       name: { type: String, default: "" },
-      category: { type: String, default: "Other" }
+      category: { type: String, default: "Other" },
     },
     topics: { type: [String], default: [] },
     technologies: { type: [String], default: [] },
-    difficulty: { type: String, enum: ["Beginner", "Intermediate", "Advanced"], default: "Beginner" },
+    difficulty: {
+      type: String,
+      enum: ["Beginner", "Intermediate", "Advanced"],
+      default: "Beginner",
+    },
     tokens: { type: [String], default: [] },
     processedAt: { type: Date, default: Date.now },
   },
-  { _id: true }
+  { _id: true },
 );
 
 const skillProfileSchema = new mongoose.Schema(
@@ -48,7 +52,7 @@ const skillProfileSchema = new mongoose.Schema(
       index: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Indexes for recommendation queries
