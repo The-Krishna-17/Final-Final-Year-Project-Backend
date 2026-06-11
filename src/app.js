@@ -21,7 +21,8 @@ app.use(
 app.use(
   cors({
     origin: (origin, callback) => {
-      const allowedOrigins = [env.CLIENT_URL];
+      // Support multiple comma-separated origins e.g. "https://app.com,http://localhost:3000"
+      const allowedOrigins = env.CLIENT_URL.split(",").map((o) => o.trim());
       // Allow requests with no origin (e.g., mobile apps, Postman in dev)
       if (!origin || allowedOrigins.includes(origin) || !env.IS_PRODUCTION) {
         callback(null, true);
