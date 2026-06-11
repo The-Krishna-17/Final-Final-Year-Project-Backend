@@ -20,7 +20,7 @@ const envSchema = z.object({
   JWT_ACCESS_EXPIRES_IN: z.string().default("15m"),
   JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
 
-  CLIENT_URL: z.string().url().default("*"),
+  CLIENT_URL: z.string().url().default("http://localhost:3000"),
 
   SMTP_HOST: z.string().min(1, "SMTP_HOST is required"),
   SMTP_PORT: z.string().default("587"),
