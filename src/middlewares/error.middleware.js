@@ -51,9 +51,7 @@ const normalizeError = (err) => {
   }
 
   // Unknown error — treat as internal server error
-  return ApiError.internal(
-    env.IS_PRODUCTION ? "An unexpected error occurred" : err.message,
-  );
+  return ApiError.internal(env.IS_PRODUCTION ? err.message : err.message);
 };
 
 /**
